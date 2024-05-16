@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  backend:
+    image: "myfastapi:latest"
+    container_name: backend
+    ports:
+      - 8000:8000
+    networks:
+      - energy
+  frontend:
+    image: "myfrontapp:latest"
+    ports: 
+      - 3000:3000
+    container_name: frontend
+    networks:
+      - energy
+  apache-proxy:
+    image: myapache:latest
+    ports:
+      - 90:90
+    container_name: apache
+    networks:
+      - energy
+      - keycloak_net
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - PROXY_ADDRESS_FORWARDING=true
+    volumes:
+      - ./keycloak/keycloak-data:/opt/keycloak/data
+    ports:
+      - 8080:8080
+    command: 
+      - start-dev
+    container_name: keycloak
+    networks:
+      - energy
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx-proxy/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    container_name: nginx
+    networks:
+      - energy
+networks:
+  energy:
+    name: energy
+    external: true
+  keycloak_net:
+    name: keycloak_net
+    external: true
+
+
